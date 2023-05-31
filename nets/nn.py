@@ -149,14 +149,8 @@ class Head(torch.nn.Module):
         self.nl = len(filters)  # number of detection layers
         self.stride = torch.zeros(self.nl)  # strides computed during build
 
-        c1 = max(filters[0], self.nc)
-        c2 = max((filters[0] // 4, 64))
-        self.box = torch.nn.ModuleList(torch.nn.Sequential(Conv(x, c2, 3),
-                                                           Conv(c2, c2, 3),
-                                                           torch.nn.Conv2d(c2, 4, 1)) for x in filters)
-        self.cls = torch.nn.ModuleList(torch.nn.Sequential(Conv(x, c1, 3),
-                                                           Conv(c1, c1, 3),
-                                                           torch.nn.Conv2d(c1, self.nc, 1)) for x in filters)
+        self.box = torch.nn.ModuleList(torch.nn.Conv2d(x, 4, 1) for x in filters)
+        self.cls = torch.nn.ModuleList(torch.nn.Conv2d(x, self.nc, 1) for x in filters)
 
     def forward(self, p3, p4, p5):
         x = [p3, p4, p5]
@@ -167,10 +161,11 @@ class Head(torch.nn.Module):
     def initialize_biases(self):
         # Initialize biases
         # WARNING: requires stride availability
-        for a, b, s in zip(self.box, self.cls, self.stride):
-            a[-1].bias.data[:] = 1.0  # box
+        for box, cls, stride in zip(self.box, self.cls, self.stride):
+            # box
+            box.bias.data[:] = 1.0
             # cls (.01 objects, 80 classes, 640 img)
-            b[-1].bias.data[:self.nc] = math.log(5 / self.nc / (640 / s) ** 2)
+            cls.bias.data[:self.nc] = math.log(5 / self.nc / (640 / stride) ** 2)
 
 
 class YOLO(torch.nn.Module):
@@ -214,37 +209,37 @@ class QAT(torch.nn.Module):
         return x
 
 
-def yolo_v8_n(num_classes: int = 1):
+def yolo_v8_n(num_classes: int = 80):
     depth = [1, 2, 2]
     width = [3, 16, 32, 64, 128, 256]
     return YOLO(width, depth, num_classes)
 
 
-def yolo_v8_t(num_classes: int = 1):
+def yolo_v8_t(num_classes: int = 80):
     depth = [1, 2, 2]
     width = [3, 24, 48, 96, 192, 384]
     return YOLO(width, depth, num_classes)
 
 
-def yolo_v8_s(num_classes: int = 1):
+def yolo_v8_s(num_classes: int = 80):
     depth = [1, 2, 2]
     width = [3, 32, 64, 128, 256, 512]
     return YOLO(width, depth, num_classes)
 
 
-def yolo_v8_m(num_classes: int = 1):
+def yolo_v8_m(num_classes: int = 80):
     depth = [2, 4, 4]
     width = [3, 48, 96, 192, 384, 576]
     return YOLO(width, depth, num_classes)
 
 
-def yolo_v8_l(num_classes: int = 1):
+def yolo_v8_l(num_classes: int = 80):
     depth = [3, 6, 6]
     width = [3, 64, 128, 256, 512, 512]
     return YOLO(width, depth, num_classes)
 
 
-def yolo_v8_x(num_classes: int = 1):
+def yolo_v8_x(num_classes: int = 80):
     depth = [3, 6, 6]
     width = [3, 80, 160, 320, 640, 640]
     return YOLO(width, depth, num_classes)
