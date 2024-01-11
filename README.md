@@ -2,6 +2,8 @@ Quantization Aware Training Implementation of YOLOv8 without [DFL](https://ieeex
 
 ### Installation
 
+Execute the command:
+
 ```
 conda create -n YOLO python=3.8
 conda activate YOLO
@@ -9,6 +11,12 @@ conda install pytorch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 pytorch-cud
 pip install opencv-python==4.5.5.64
 pip install PyYAML
 pip install tqdm
+```
+
+or 
+
+```
+pip3 install -r requirements.txt
 ```
 
 ### Train
