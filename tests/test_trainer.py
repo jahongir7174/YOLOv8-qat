@@ -1,6 +1,6 @@
 import unittest
 
-from trainer import Trainer
+from utils.trainer import Trainer
 
 
 class TestTrainer(unittest.TestCase):
