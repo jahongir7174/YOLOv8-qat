@@ -1,6 +1,6 @@
 import unittest
 
-from util import (compute_metric, make_anchors, non_max_suppression,
+from utils.util import (compute_metric, make_anchors, non_max_suppression,
                   setup_multi_processes, setup_seed, wh2xy)
 
 
