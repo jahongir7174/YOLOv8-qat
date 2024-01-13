@@ -52,6 +52,9 @@ class TestTrainer(unittest.TestCase):
         mock_dataloader.assert_called_once()
         self.assertIsInstance(loader, DataLoader)
 
+        # Check if the open function was called with the correct file path
+        mock_open.assert_called_once_with('../Dataset/COCO/train2017.txt')
+
     def test_learning_rate(self) -> None:
         """
         Test the learning_rate method of the Trainer class.
@@ -64,8 +67,35 @@ class TestTrainer(unittest.TestCase):
         """
         Test the train method of the Trainer class.
         """
+        # Setup
+        mock_writer = MagicMock()
+        mock_csv_writer.return_value = mock_writer
+
+        # Call train method
         best_mean_ap: float = self.trainer.train()
+
+        # Assertions
         self.assertIsNotNone(best_mean_ap)
+        mock_csv_writer.assert_called()  # Check if DictWriter was called
+        mock_writer.writerow.assert_called()  # Check if write operation was performed
+
+        # Add additional checks if necessary, e.g., check the content of written rows
+        # Here we assume that the DictWriter is used to write training metrics in each epoch
+        # We can assert that the writer wrote rows corresponding to each epoch of training
+        num_epochs = self.args.epochs
+        self.assertEqual(mock_writer.writerow.call_count, num_epochs)
+
+        # Optionally, inspect the specific contents of the written rows
+        # This part depends on the actual data structure you expect
+        # Example:
+        for call_args in mock_writer.writerow.call_args_list:
+            written_row = call_args[0][0]  # Extract the dictionary passed to write operation
+            self.assertIn('epoch', written_row)
+            self.assertIn('box', written_row)
+            self.assertIn('cls', written_row)
+            self.assertIn('mAP', written_row)
+            # Add more field checks as per your requirement
+
 
     def test_warmup_lr_and_momentum(self) -> None:
         """

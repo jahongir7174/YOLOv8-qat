@@ -3,6 +3,9 @@ from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import tqdm
 
+from utils.dataset import Dataset, wh2xy
+from utils.util import compute_ap, compute_metric, non_max_suppression
+
 class Tester:
     def __init__(self, args, params):
         self.args = args
@@ -100,6 +103,9 @@ class Tester:
         print(f"Precision: {m_pre:.4f}, Recall: {m_rec:.4f}, mAP@0.5: {map50:.4f}, mAP: {mean_ap:.4f}")
 
 if __name__ == "__main__":
+    # Define missing args and params variables
+    args = 'YOUR_ARGS' # Please replace YOUR_ARGS with actual parameters
+    params = 'YOUR_PARAMS' # Please replace YOUR_PARAMS with actual parameters
     tester = Tester(args, params)
     mean_ap, map50, m_rec, m_pre = tester.test()
     print(f"mAP: {mean_ap:.4f}, mAP@0.5: {map50:.4f}, Recall: {m_rec:.4f}, Precision: {m_pre:.4f}")

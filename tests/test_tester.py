@@ -15,6 +15,9 @@ class TestTester(unittest.TestCase):
         expected_filenames = ['../Dataset/COCO/images/val2017/image1.jpg', '../Dataset/COCO/images/val2017/image2.jpg']
         self.assertEqual(filenames, expected_filenames)
 
+        # Verify that open was called with the correct path
+        mock_open.assert_called_once_with('../Dataset/COCO/val2017.txt')
+
     @patch('utils.tester.DataLoader')
     @patch('utils.tester.Dataset')
     def test_prepare_data_loader(self, mock_dataset: MagicMock, mock_dataloader: MagicMock) -> None:
@@ -54,6 +57,12 @@ class TestTester(unittest.TestCase):
         n_iou = iou_v.numel()
         results = tester.evaluate(loader, model, device, iou_v, n_iou)
         self.assertIsNotNone(results)
+
+        # Verify that the mocked functions were called during evaluation
+        mock_compute_ap.assert_called()  # Check if compute_ap is called
+        mock_compute_metric.assert_called()  # Check if compute_metric is called
+        mock_nms.assert_called()  # Check if non_max_suppression is called
+        mock_tqdm.assert_called()  # Check if tqdm is used for the progress bar
 
     def test_print_results(self) -> None:
         """

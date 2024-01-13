@@ -1,3 +1,4 @@
+from itertools import accumulate
 import torch
 import numpy as np
 import csv
@@ -155,7 +156,7 @@ class Trainer:
         torch.cuda.empty_cache()
         return best_mean_ap
 
-    def _warmup_lr_and_momentum(self, x, num_warmup):
+    def _warmup_lr_and_momentum(self, x, num_warmup, epoch):
         # Warmup logic
         xp = [0, num_warmup]
         fp = [1, 64 / (self.args.batch_size * self.args.world_size)]
@@ -182,7 +183,7 @@ class Trainer:
         (loss_box + loss_cls).backward()
         return loss_box, loss_cls
 
-    def _optimize(self, accumulate):
+    def _optimize(self, accumulate, x):  # 传递 x 参数
         if x % accumulate == 0:
             util.clip_gradients(self.model)  # clip gradients
             self.optimizer.step()

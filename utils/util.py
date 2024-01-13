@@ -143,3 +143,95 @@ def non_max_suppression(outputs, conf_threshold, iou_threshold, nc):
         if (time() - start_time) > time_limit:
             break  # time limit exceeded
     return nms_outputs
+
+def compute_ap(predictions, targets):
+    """
+    Compute Average Precision (AP) for a given set of predictions and targets.
+
+    Args:
+        predictions (list): List of predicted bounding boxes and scores.
+            Each element is a tuple (confidence, x1, y1, x2, y2).
+        targets (list): List of ground truth bounding boxes.
+            Each element is a tuple (class, x1, y1, x2, y2).
+
+    Returns:
+        float: Average Precision (AP) value.
+    """
+    # Sort predictions by confidence score in descending order
+    predictions.sort(key=lambda x: x[0], reverse=True)
+
+    true_positives = []
+    false_positives = []
+    num_targets = len(targets)
+
+    for prediction in predictions:
+        confidence, pred_x1, pred_y1, pred_x2, pred_y2 = prediction
+        best_iou = 0
+        best_target = -1
+
+        for i, target in enumerate(targets):
+            target_class, target_x1, target_y1, target_x2, target_y2 = target
+            if target_class == 0:  # Consider only objects of class 0 (change as needed)
+                iou = calculate_iou((pred_x1, pred_y1, pred_x2, pred_y2), (target_x1, target_y1, target_x2, target_y2))
+                if iou > best_iou:
+                    best_iou = iou
+                    best_target = i
+
+        if best_iou >= 0.5:
+            if targets[best_target][0] != -1:
+                true_positives.append(1)
+                targets[best_target] = (-1, 0, 0, 0, 0)  # Mark target as used
+            else:
+                false_positives.append(1)
+        else:
+            false_positives.append(1)
+
+    num_predictions = len(predictions)
+    precision = sum(true_positives) / (sum(true_positives) + sum(false_positives))
+    recall = sum(true_positives) / num_targets if num_targets > 0 else 0
+
+    return compute_ap_with_precision_recall(precision, recall)
+
+def calculate_iou(box1, box2):
+    x1, y1, x2, y2 = box1
+    x3, y3, x4, y4 = box2
+
+    # Calculate the area of intersection
+    x_intersection = max(0, min(x2, x4) - max(x1, x3))
+    y_intersection = max(0, min(y2, y4) - max(y1, y3))
+    intersection_area = x_intersection * y_intersection
+
+    # Calculate the area of each bounding box
+    area_box1 = (x2 - x1) * (y2 - y1)
+    area_box2 = (x4 - x3) * (y4 - y3)
+
+    # Calculate the IoU (Intersection over Union)
+    iou = intersection_area / (area_box1 + area_box2 - intersection_area + 1e-6)
+
+    return iou
+
+def compute_ap_with_precision_recall(precision, recall):
+    """
+    Compute Average Precision (AP) from precision and recall values using the
+    VOC 2010 method. This method calculates the AP as the area under the precision-recall curve.
+
+    Args:
+        precision (list): List of precision values.
+        recall (list): List of recall values.
+
+    Returns:
+        float: Average Precision (AP) value.
+    """
+    m_rec = [0] + recall + [1]
+    m_pre = [0] + precision + [0]
+
+    # Compute the precision envelope
+    for i in range(len(m_pre) - 2, -1, -1):
+        m_pre[i] = max(m_pre[i], m_pre[i + 1])
+
+    # Integrate area under the curve
+    ap = 0
+    for i in range(1, len(m_rec)):
+        ap += (m_rec[i] - m_rec[i - 1]) * m_pre[i]
+
+    return ap
