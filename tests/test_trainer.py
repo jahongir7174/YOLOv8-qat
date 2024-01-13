@@ -30,6 +30,7 @@ class TestTrainer(unittest.TestCase):
         """
         model = self.trainer.load_and_prepare_model()
         self.assertIsNotNone(model)
+        mock_torch_load.assert_called_once_with('./weights/v8_n.pth')
 
     def test_configure_optimizer_and_scheduler(self) -> None:
         """
