@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import os
+from typing import Any, Dict
 
 # Import the main function
 from main import main
@@ -13,7 +14,9 @@ class TestMain(unittest.TestCase):
     @patch('os.makedirs')
     @patch('os.getenv')
     @patch('sys.argv', ['main.py', '--train'])
-    def test_main_train(self, mock_getenv, mock_makedirs, mock_load_config, mock_tester, mock_trainer):
+    def test_main_train(self, mock_getenv: MagicMock, mock_makedirs: MagicMock, 
+                        mock_load_config: MagicMock, mock_tester: MagicMock, 
+                        mock_trainer: MagicMock) -> None:
         """
         Test the main function for training scenario.
         """
@@ -35,7 +38,9 @@ class TestMain(unittest.TestCase):
     @patch('os.makedirs')
     @patch('os.getenv')
     @patch('sys.argv', ['main.py', '--test'])
-    def test_main_test(self, mock_getenv, mock_makedirs, mock_load_config, mock_tester, mock_trainer):
+    def test_main_test(self, mock_getenv: MagicMock, mock_makedirs: MagicMock, 
+                       mock_load_config: MagicMock, mock_tester: MagicMock, 
+                       mock_trainer: MagicMock) -> None:
         """
         Test the main function for testing scenario.
         """
